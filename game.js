@@ -17,6 +17,8 @@
      this.online = null;
      this.status = null;
 
+     this.phone = null;
+
      this.init();
    };
 
@@ -27,6 +29,57 @@
      init: function(){
 
         //console.log('started');
+        this.askPhone();
+        this.serveQuestion();
+     },
+     serveQuestion: function(){
+       //Kui ei ole netti
+       if(!navigator.onLine){
+         window.setTimeout(function(){
+           Game.instance.serveQuestion();
+         }, 100);
+         return;
+       }
+       //Nett oli
+       var xhttp = new XMLHttpRequest();
+       xhttp.onreadystatechange = function() {
+         if (xhttp.readyState == 4 && xhttp.status == 200) {
+
+           var question = JSON.parse(xhttp.responseText);
+           console.log(question);
+           if(typeof question.id === "undefined"){
+             //id-d ei olnud
+             console.log("Küsimust ei olnud");
+             window.setTimeout(function(){
+               Game.instance.serveQuestion();
+             }, 1000);
+           }else{
+             prompt(question.q);
+           }
+         }
+       };
+       xhttp.open("GET", "questions.txt", true);
+       xhttp.send();
+
+     },
+     askPhone: function(){
+
+       if(localStorage.getItem("phone")){
+         this.phone = localStorage.getItem("phone");
+         return;
+
+
+       }
+
+       var p = prompt("Palun sisesta oma telefoni number");
+
+       if(p){
+         //Prompt ei olnud tühi ega canceldatud
+         localStorage.setItem("phone", p);
+         this.phone = p;
+       }else{
+         this.askPhone();
+       }
      },
      startCacheListeners: function(){
          this.cache.addEventListener('cached', this.logEvent.bind(this), false);
